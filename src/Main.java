@@ -7,13 +7,14 @@ import java.util.*;
 
 public class Main {
 
-    public static String message_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\message_short";
+    public static String message_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\message_long";
     public static String cipher_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\cipher";
-    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_long";
+    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check\\keys_found";
+    //public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_long";
     public static String output_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check";
     public static byte[] state = new byte[16];
     public static List<byte[]> cipher_blocks = new ArrayList<byte[]>(); //will contain all cipher blocks
-    public static String instruction = "b";
+    public static String instruction = "check_break";
 
 
 
@@ -71,7 +72,12 @@ public class Main {
             findKeys(M,C);
 
             cipher_blocks = new ArrayList<>();
-            
+
+        }
+        if (instruction=="check_break"){
+            byte[]keys=getKey(key_path);
+            check_break(keys);
+
         }
     }
 
@@ -254,10 +260,10 @@ public class Main {
         state = M;
 
         //create two random keys
-        byte[] K1 = new byte[20];
+        byte[] K1 = new byte[16];
         new Random().nextBytes(K1);
 
-        byte[] K2 = new byte[20];
+        byte[] K2 = new byte[16];
         new Random().nextBytes(K2);
 
         encrypt_AES(K1);
@@ -267,6 +273,7 @@ public class Main {
 
         //K3 is C XOR the message that we've message we've gotten using the two first encrypts
         byte[] K3 = new byte[16];
+        ShiftRows();
         for (int i=0; i<16 ;i++){
             state[i] ^= C[i];
             K3 = state;
@@ -279,6 +286,26 @@ public class Main {
 
         //write the 3 keys to a file
         writeOutput("keys_found");
+    }
+
+    public static void check_break(byte[]keys){
+        byte [] cypher = readMessage(cipher_path);
+
+        byte[] K1 = Arrays.copyOfRange(keys, 0, 16);
+        byte[] K2 = Arrays.copyOfRange(keys, 16, 32);
+        byte[] K3 = Arrays.copyOfRange(keys, 32, 48);
+
+        state = readMessage(message_path);
+
+        ShiftRows();
+        AddRoundKey(K1);
+
+        ShiftRows();
+        AddRoundKey(K2);
+
+        ShiftRows();
+        AddRoundKey(K3);
+
     }
 
 }
