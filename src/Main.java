@@ -12,17 +12,21 @@ public class Main {
 
     public static String message_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\message_long";
     public static String cipher_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\cipher";
-    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_short";
+    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_long";
     public static String output_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check";
     public static byte[] state = new byte[16];
     public static List<byte[]> cipher_blocks = new ArrayList<byte[]>(); //will contain all cipher blocks
     public static String instruction = "d";
+    public static byte[] first_message ;
+
 
     public static void main(String[] args) {
 
         //encrypt
         if (instruction == "e") {
             byte[] message = readMessage(message_path);
+            first_message=message;
+            String s = new String (message);
             int num_blocks = message.length / 16; //each block contains 16 bytes
 
             byte[] key = getKey(key_path);
@@ -40,6 +44,8 @@ public class Main {
             }
         }
 
+
+
         //decrypt
         if (instruction == "d") {
             byte[] cipher = readMessage(cipher_path);
@@ -56,6 +62,7 @@ public class Main {
                 end_index += 16;
 
                 decrypt_AES_3(key);
+                String s = new String (state);
                 writeOutput("message");
             }
 
@@ -67,7 +74,6 @@ public class Main {
     public static void writeOutput(String action){
         FileOutputStream fos;
         try {
-            byte[]sora=new byte[176];
             fos = new FileOutputStream(output_path + "\\" + action);
             int start=0;
 
@@ -181,11 +187,40 @@ public class Main {
         byte [] temp = new byte[16];
 
         temp[0] = state[0];
+        temp[1] = state[13];
+        temp[2] = state[10];
+        temp[3] = state[7];
+
+        temp[4] = state[4];
+        temp[5] = state[1];
+        temp[6] = state[14];
+        temp[7] = state[11];
+
+        temp[8] = state[8];
+        temp[9] = state[5];
+        temp[10] = state[2];
+        temp[11] = state[15];
+
+        temp[12] = state[12];
+        temp[13] = state[9];
+        temp[14] = state[6];
+        temp[15] = state[3];
+
+        for (int i=0; i<16; i++){
+            state[i] = temp[i];
+        }
+
+    }
+
+    public static void reverse_ShiftRows(){
+        byte [] temp = new byte[16];
+
+        temp[0] = state[0];
         temp[1] = state[5];
         temp[2] = state[10];
         temp[3] = state[15];
 
-        temp[4] = state[0];
+        temp[4] = state[4];
         temp[5] = state[9];
         temp[6] = state[14];
         temp[7] = state[3];
@@ -199,35 +234,6 @@ public class Main {
         temp[13] = state[1];
         temp[14] = state[6];
         temp[15] = state[11];
-
-        for (int i=0; i<16; i++){
-            state[i] = temp[i];
-        }
-
-    }
-
-    public static void reverse_ShiftRows(){
-        byte [] temp = new byte[16];
-
-        temp[0] = state[0];
-        temp[5] = state[1];
-        temp[10] = state[2];
-        temp[15] = state[3];
-
-        temp[0] = state[4];
-        temp[9] = state[5];
-        temp[14] = state[6];
-        temp[3] = state[7];
-
-        temp[8] = state[8];
-        temp[13] = state[9];
-        temp[2] = state[10];
-        temp[7] = state[11];
-
-        temp[12] = state[12];
-        temp[1] = state[13];
-        temp[6] = state[14];
-        temp[11] = state[15];
 
         for (int i=0; i<16; i++){
             state[i] = temp[i];
