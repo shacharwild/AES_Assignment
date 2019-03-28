@@ -7,14 +7,14 @@ import java.util.*;
 
 public class Main {
 
-    public static String message_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\message_long";
-    public static String cipher_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\cipher";
-    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check\\keys_found";
-    //public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_long";
+    public static String message_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\message_short";
+    public static String cipher_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\cipher_short";
+    //public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check\\keys_found";
+    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_short";
     public static String output_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check";
     public static byte[] state = new byte[16];
     public static List<byte[]> cipher_blocks = new ArrayList<byte[]>(); //will contain all cipher blocks
-    public static String instruction = "check_break";
+    public static String instruction = "e";
 
 
 
@@ -146,7 +146,7 @@ public class Main {
         //generate key
         byte[] K = new byte[16];
         int index=0;
-        for (int i=round; i<16+round; i++){
+        for (int i=round*16; i<round*16+16; i++){
             K[index] = keys[i];
             index++;
         }
