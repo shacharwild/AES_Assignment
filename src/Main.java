@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,22 +6,39 @@ import java.util.*;
 
 public class Main {
 
-    public static String message_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\message_short";
-    public static String cipher_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\cipher_short";
+    private static String message_path = "D:\\AES_Assignment\\AES_files\\message_long";
+    private static String cipher_path = "D:\\AES_Assignment\\AES_files\\output_check\\cipher";
     //public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check\\keys_found";
-    public static String key_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\key_short";
-    public static String output_path = "C:\\Users\\shachar wild\\Downloads\\AES_files\\output_check";
-    public static byte[] state = new byte[16];
-    public static List<byte[]> cipher_blocks = new ArrayList<byte[]>(); //will contain all cipher blocks
-    public static String instruction = "e";
+    private static String key_path = "D:\\AES_Assignment\\AES_files\\key_long";
+    private static String output_path = "D:\\AES_Assignment\\AES_files\\output_check";
+    private static byte[] state = new byte[16];
+    private static List<byte[]> cipher_blocks = new ArrayList<>(); //will contain all cipher blocks
+    private static String instruction = "d";
+    private static boolean runFromCMD = false;
 
 
 
     public static void main(String[] args) {
 
+        if(runFromCMD) {
+            for (int arg_index = 0; arg_index < args.length; arg_index++) {
+                if (args[arg_index].equals("-b") || args[arg_index].equals("-e") || args[arg_index].equals("-d"))
+                    instruction = args[arg_index].substring(1);
+                else if ((args[arg_index].equals("-i") || args[arg_index].equals("-m")) && (arg_index + 1 < args.length))
+                    message_path = args[arg_index + 1];
+                else if (args[arg_index].equals("-o") && arg_index + 1 < args.length)
+                    output_path = args[arg_index + 1];
+                else if (args[arg_index].equals("-k") && arg_index + 1 < args.length)
+                    key_path = args[arg_index + 1];
+                else if (args[arg_index].equals("-c") && arg_index + 1 < args.length)
+                    cipher_path = args[arg_index + 1];
+            }
+        }
+
         //encrypt
-        if (instruction == "e") {
+        if (instruction.equals("e")) {
             byte[] message = readMessage(message_path);
+            assert message != null;
             int num_blocks = message.length / 16; //each block contains 16 bytes
 
             byte[] key = getKey(key_path);
@@ -30,8 +46,7 @@ public class Main {
             int start_index = 0;
             int end_index = 16;
             for (int i = 0; i < num_blocks; i++) { //perform AES on each block
-                byte[] block = Arrays.copyOfRange(message, start_index, end_index);
-                state = block;
+                state = Arrays.copyOfRange(message, start_index, end_index);
                 start_index += 16;
                 end_index += 16;
 
@@ -43,8 +58,9 @@ public class Main {
 
 
         //decrypt
-        if (instruction == "d") {
+        if (instruction.equals("d")) {
             byte[] cipher = readMessage(cipher_path);
+            assert cipher != null;
             int num_blocks = cipher.length / 16; //each block contains 16 bytes
 
             byte[] key = getKey(key_path);
@@ -52,8 +68,7 @@ public class Main {
             int start_index = 0;
             int end_index = 16;
             for (int i = 0; i < num_blocks; i++) { //perform AES on each block
-                byte[] block = Arrays.copyOfRange(cipher, start_index, end_index);
-                state = block;
+                state = Arrays.copyOfRange(cipher, start_index, end_index);
                 start_index += 16;
                 end_index += 16;
 
@@ -65,7 +80,7 @@ public class Main {
         }
 
         //break code (find 3 keys)
-        if (instruction == "b") {
+        if (instruction.equals("b")) {
             byte[] M =readMessage(message_path);
             byte[] C =readMessage(cipher_path);
 
@@ -74,7 +89,7 @@ public class Main {
             cipher_blocks = new ArrayList<>();
 
         }
-        if (instruction=="check_break"){
+        if (instruction.equals("check_break")){
             byte[]keys=getKey(key_path);
             check_break(keys);
 
@@ -82,14 +97,13 @@ public class Main {
     }
 
     //write cipher/message to output directory
-    public static void writeOutput(String action){
+    private static void writeOutput(String action){
         FileOutputStream fos;
         try {
             fos = new FileOutputStream(output_path + "\\" + action);
             int start=0;
 
-            for (int i = 0; i < cipher_blocks.size(); i++) {
-                byte[] toWrite = cipher_blocks.get(i);
+            for (byte[] toWrite : cipher_blocks) {
                 fos.write(toWrite);
             }
             fos.close();
@@ -104,7 +118,7 @@ public class Main {
     /**
      * AES 3 encrypt algorithm
      */
-    public static void encrypt_AES_3(byte[]key){
+    private static void encrypt_AES_3(byte[] key){
         for (int j=0; j<3; j++){ //perform AES 3 times on each block
             byte[] K = makeKey(key,j);
 
@@ -115,7 +129,7 @@ public class Main {
     }
 
 
-    public static void encrypt_AES(byte[]K){
+    private static void encrypt_AES(byte[] K){
         ShiftRows();
         AddRoundKey(K);
     }
@@ -125,7 +139,7 @@ public class Main {
     /**
      * AES 3 decrypt algorithm
      */
-    public static void decrypt_AES_3(byte[]key){
+    private static void decrypt_AES_3(byte[] key){
         int key_index=2;
         for (int j=0; j<3; j++){ //perform AES 3 times on each block
             byte[] K = makeKey(key,key_index);
@@ -136,13 +150,13 @@ public class Main {
         cipher_blocks.add(state); //add the new cipher block
     }
 
-    public static void decrypt_AES(byte[]K){
+    private static void decrypt_AES(byte[] K){
         AddRoundKey(K);
         reverse_ShiftRows();
     }
 
 
-    public static byte[] makeKey(byte[] keys,int round){
+    private static byte[] makeKey(byte[] keys, int round){
         //generate key
         byte[] K = new byte[16];
         int index=0;
@@ -154,32 +168,30 @@ public class Main {
         return K;
     }
 
-    public static byte[] readMessage(String path){
+    private static byte[] readMessage(String path){
 
         Path fileLocation = Paths.get(path);
 
         try {
-            byte [] message = Files.readAllBytes(fileLocation);
-            return message;
+            return Files.readAllBytes(fileLocation);
         }
 
-        catch(Exception e){
+        catch(Exception ignored){
 
         }
         return null; //if couldn't read.
     }
 
 
-    public static byte[] getKey(String path){
+    private static byte[] getKey(String path){
 
         Path fileLocation = Paths.get(path);
 
         try {
-            byte [] key = Files.readAllBytes(fileLocation);
-            return key;
+            return Files.readAllBytes(fileLocation);
         }
 
-        catch(Exception e){
+        catch(Exception ignored){
 
         }
         return null; //if couldn't read.
@@ -187,36 +199,7 @@ public class Main {
 
 
 
-    public static void ShiftRows(){
-        byte [] temp = new byte[16];
-
-        temp[0] = state[0];
-        temp[1] = state[13];
-        temp[2] = state[10];
-        temp[3] = state[7];
-
-        temp[4] = state[4];
-        temp[5] = state[1];
-        temp[6] = state[14];
-        temp[7] = state[11];
-
-        temp[8] = state[8];
-        temp[9] = state[5];
-        temp[10] = state[2];
-        temp[11] = state[15];
-
-        temp[12] = state[12];
-        temp[13] = state[9];
-        temp[14] = state[6];
-        temp[15] = state[3];
-
-        for (int i=0; i<16; i++){
-            state[i] = temp[i];
-        }
-
-    }
-
-    public static void reverse_ShiftRows(){
+    private static void ShiftRows(){
         byte [] temp = new byte[16];
 
         temp[0] = state[0];
@@ -239,19 +222,44 @@ public class Main {
         temp[14] = state[6];
         temp[15] = state[11];
 
-        for (int i=0; i<16; i++){
-            state[i] = temp[i];
-        }
+        System.arraycopy(temp, 0, state, 0, 16);
 
     }
 
-    public static void AddRoundKey(byte[] roundKey ) {
+    private static void reverse_ShiftRows(){
+        byte [] temp = new byte[16];
+
+        temp[0] = state[0];
+        temp[1] = state[13];
+        temp[2] = state[10];
+        temp[3] = state[7];
+
+        temp[4] = state[4];
+        temp[5] = state[1];
+        temp[6] = state[14];
+        temp[7] = state[11];
+
+        temp[8] = state[8];
+        temp[9] = state[5];
+        temp[10] = state[2];
+        temp[11] = state[15];
+
+        temp[12] = state[12];
+        temp[13] = state[9];
+        temp[14] = state[6];
+        temp[15] = state[3];
+
+        System.arraycopy(temp, 0, state, 0, 16);
+
+    }
+
+    private static void AddRoundKey(byte[] roundKey) {
         for (int i=0; i<16; i++){
             state[i] ^= roundKey[i];
         }
     }
 
-    public static void findKeys(byte[] M, byte[] C){
+    private static void findKeys(byte[] M, byte[] C){
 
         //take first block of M and C
         M = Arrays.copyOfRange(M, 0, 16);
@@ -288,7 +296,7 @@ public class Main {
         writeOutput("keys_found");
     }
 
-    public static void check_break(byte[]keys){
+    private static void check_break(byte[] keys){
         byte [] cypher = readMessage(cipher_path);
 
         byte[] K1 = Arrays.copyOfRange(keys, 0, 16);
