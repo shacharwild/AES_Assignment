@@ -13,7 +13,7 @@ public class Main {
     private static String output_path = "D:\\AES_Assignment\\AES_files\\output_check";
     private static byte[] state = new byte[16];
     private static List<byte[]> cipher_blocks = new ArrayList<>(); //will contain all cipher blocks
-    private static String instruction = "d";
+    private static String instruction = "e";
     private static boolean runFromCMD = false;
 
 
