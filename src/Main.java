@@ -13,86 +13,108 @@ public class Main {
     private static String output_path = "D:\\AES_Assignment\\AES_files\\output_check";
     private static byte[] state = new byte[16];
     private static List<byte[]> cipher_blocks = new ArrayList<>(); //will contain all cipher blocks
-    private static String instruction = "e";
-    private static boolean runFromCMD = false;
-
+    private static String instruction = "";
 
 
     public static void main(String[] args) {
 
-        if(runFromCMD) {
-            for (int arg_index = 0; arg_index < args.length; arg_index++) {
-                if (args[arg_index].equals("-b") || args[arg_index].equals("-e") || args[arg_index].equals("-d"))
-                    instruction = args[arg_index].substring(1);
-                else if ((args[arg_index].equals("-i") || args[arg_index].equals("-m")) && (arg_index + 1 < args.length))
-                    message_path = args[arg_index + 1];
-                else if (args[arg_index].equals("-o") && arg_index + 1 < args.length)
+        for (int arg_index = 0; arg_index < args.length; arg_index++) {
+            if (args[arg_index].equals("-b") || args[arg_index].equals("-e") || args[arg_index].equals("-d"))
+                instruction = args[arg_index].substring(1);
+            else {
+                switch (instruction) {
+                    case "e":
+                        if (args[arg_index].equals("-i") && (arg_index + 1 < args.length))
+                            message_path = args[arg_index + 1];
+                        else if (args[arg_index].equals("-k") && arg_index + 1 < args.length)
+                            key_path = args[arg_index + 1];
+                        break;
+                    case "d":
+                        if (args[arg_index].equals("-i") && (arg_index + 1 < args.length))
+                            cipher_path = args[arg_index + 1];
+                        else if (args[arg_index].equals("-k") && arg_index + 1 < args.length)
+                            key_path = args[arg_index + 1];
+                        break;
+                    case "b":
+                        if (args[arg_index].equals("-m") && (arg_index + 1 < args.length))
+                            message_path = args[arg_index + 1];
+                        else if (args[arg_index].equals("-c") && arg_index + 1 < args.length)
+                            cipher_path = args[arg_index + 1];
+                        break;
+                }
+                if (args[arg_index].equals("-o") && arg_index + 1 < args.length)
                     output_path = args[arg_index + 1];
-                else if (args[arg_index].equals("-k") && arg_index + 1 < args.length)
-                    key_path = args[arg_index + 1];
-                else if (args[arg_index].equals("-c") && arg_index + 1 < args.length)
-                    cipher_path = args[arg_index + 1];
             }
+
         }
+
 
         //encrypt
-        if (instruction.equals("e")) {
-            byte[] message = readMessage(message_path);
-            assert message != null;
-            int num_blocks = message.length / 16; //each block contains 16 bytes
-
-            byte[] key = getKey(key_path);
-
-            int start_index = 0;
-            int end_index = 16;
-            for (int i = 0; i < num_blocks; i++) { //perform AES on each block
-                state = Arrays.copyOfRange(message, start_index, end_index);
-                start_index += 16;
-                end_index += 16;
-
-                encrypt_AES_3(key);
-                writeOutput("cipher");
-            }
-        }
+        switch (instruction) {
+            case "e": {
+                byte[] message = readMessage(message_path);
+                assert message != null;
+                int num_blocks = message.length / 16; //each block contains 16 bytes
 
 
+                byte[] key = getKey(key_path);
 
-        //decrypt
-        if (instruction.equals("d")) {
-            byte[] cipher = readMessage(cipher_path);
-            assert cipher != null;
-            int num_blocks = cipher.length / 16; //each block contains 16 bytes
+                int start_index = 0;
+                int end_index = 16;
+                for (int i = 0; i < num_blocks; i++) { //perform AES on each block
+                    state = Arrays.copyOfRange(message, start_index, end_index);
+                    start_index += 16;
+                    end_index += 16;
 
-            byte[] key = getKey(key_path);
-
-            int start_index = 0;
-            int end_index = 16;
-            for (int i = 0; i < num_blocks; i++) { //perform AES on each block
-                state = Arrays.copyOfRange(cipher, start_index, end_index);
-                start_index += 16;
-                end_index += 16;
-
-                decrypt_AES_3(key);
-                writeOutput("message");
+                    encrypt_AES_3(key);
+                    writeOutput("cipher");
+                }
+                break;
             }
 
-            cipher_blocks = new ArrayList<>();
-        }
 
-        //break code (find 3 keys)
-        if (instruction.equals("b")) {
-            byte[] M =readMessage(message_path);
-            byte[] C =readMessage(cipher_path);
+            //decrypt
+            case "d": {
+                byte[] cipher = readMessage(cipher_path);
+                assert cipher != null;
+                int num_blocks = cipher.length / 16; //each block contains 16 bytes
 
-            findKeys(M,C);
 
-            cipher_blocks = new ArrayList<>();
+                byte[] key = getKey(key_path);
 
-        }
-        if (instruction.equals("check_break")){
-            byte[]keys=getKey(key_path);
-            check_break(keys);
+                int start_index = 0;
+                int end_index = 16;
+                for (int i = 0; i < num_blocks; i++) { //perform AES on each block
+                    state = Arrays.copyOfRange(cipher, start_index, end_index);
+                    start_index += 16;
+                    end_index += 16;
 
+                    decrypt_AES_3(key);
+                    writeOutput("message");
+                }
+
+                cipher_blocks = new ArrayList<>();
+                break;
+            }
+
+            //break code (find 3 keys)
+            case "b":
+                byte[] M = readMessage(message_path);
+                byte[] C = readMessage(cipher_path);
+
+                findKeys(M, C);
+
+                cipher_blocks = new ArrayList<>();
+
+                break;
+            case "check_break":
+                byte[] keys = getKey(key_path);
+                check_break(keys);
+
+                break;
+            default:
+                System.out.println("No Instruction");
+                break;
         }
     }
 
